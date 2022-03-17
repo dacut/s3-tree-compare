@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+s3-tree-compare
 
 # Test binary, built with `go test -c`
 *.test
@@ -11,5 +12,12 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# MacOS userdata
+.DS_Store
+
+# Editor settings
+.vscode/
+
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
