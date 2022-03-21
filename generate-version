@@ -1,0 +1,31 @@
+#!/bin/bash -e
+TAG_VERSION="$(git tag --points-at)"
+COMMIT_VERSION=$(git rev-parse --short=10 HEAD)
+IS_MODIFIED=$(git status --short --porcelain)
+
+if [[ ! -z "$IS_MODIFIED" ]]; then
+    # Changes haven't been checked in. Use commit version and username.
+    if [[ ! -z "$LOGNAME" ]]; then
+        USERNAME="$LOGNAME"
+    elif [[ ! -z "$USER" ]]; then
+        USERNAME="$USER"
+    else
+        USERNAME="$(whoami)"
+    fi;
+
+    VERSION="${COMMIT_VERSION}-${USERNAME}"
+elif [[ ! -z "$TAG_VERSION" ]]; then
+    VERSION="${TAG_VERSION}";
+else
+    VERSION="${COMMIT_VERSION}";
+fi;
+
+TS=$(date -u +%Y-%m-%dT%H:%M%SZ)
+
+cat > version.go <<.EOF
+package main
+
+// This is a generated file, generated on $TS
+
+const version = "$VERSION"
+.EOF

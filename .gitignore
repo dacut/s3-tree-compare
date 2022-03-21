@@ -5,6 +5,7 @@
 *.so
 *.dylib
 s3-tree-compare
+*.zip
 
 # Test binary, built with `go test -c`
 *.test
@@ -21,6 +22,8 @@ s3-tree-compare
 # Code signing identity
 .codesign
 
+# Don't check in the version.
+version.go
 
 # Dependency directories (remove the comment below to include it)
 # vendor/

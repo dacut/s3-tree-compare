@@ -9,9 +9,9 @@ ZIP_TARGETS := $(foreach platform,$(PLATFORMS),s3-tree-compare-$(platform)-$(VER
 EXE_TARGETS := $(foreach platform,$(PLATFORMS),s3-tree-compare-$(platform))
 UPLOAD_TARGETS := $(foreach platform,$(PLATFORMS),upload-$(platform))
 
-all: $(ZIP_TARGETS)
+all: $(ZIP_TARGETS) version.go
 
-test:
+test: version.go
 	go test
 
 upload: $(UPLOAD_TARGETS)
@@ -19,10 +19,13 @@ upload: $(UPLOAD_TARGETS)
 upload-%: s3-tree-compare-%-$(VERSION).zip
 	./artifactory-upload $(ARTIFACTORY_REPOSITORY) $<
 
-s3-tree-compare-%-$(VERSION).zip: go.mod go.sum *.go
+s3-tree-compare-%-$(VERSION).zip: go.mod go.sum *.go version.go
 	./build $@
 
 clean:
-	rm -rf s3-tree-compare-* s3-tree-compare tmp-*
+	rm -rf s3-tree-compare-* s3-tree-compare tmp-* version.go
+
+version.go:
+	go generate
 
 .PHONY: all clean

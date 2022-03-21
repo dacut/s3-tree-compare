@@ -14,6 +14,8 @@ import (
 	"github.com/dacut/s3-tree-compare/internal/s3compare"
 )
 
+//go:generate ./generate-version
+
 func main() {
 	flags := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 
@@ -60,6 +62,7 @@ Two objects are considered different if:
 	flags.Var(ignoredHeadersFlag, "ignore-header", "Add header to list of headers to ignore.")
 	outputFormatStr := flags.String("format", "text", "Output format (text/json; defaults to text).")
 	outputFileFlag := flags.String("output", "", "Write output to specified file (defaults to stdout).")
+	versionFlag := flags.Bool("version", false, "Get the current version.")
 
 	help := flags.Bool("help", false, "Show this usage information.")
 	err := flags.Parse(os.Args[1:])
@@ -72,6 +75,11 @@ Two objects are considered different if:
 
 	if *help {
 		usage(os.Stdout)
+		os.Exit(0)
+	}
+
+	if *versionFlag {
+		fmt.Printf("%s\n", version)
 		os.Exit(0)
 	}
 
