@@ -18,11 +18,22 @@ case "$OS" in
     macos )
         echo "Building ${EXECUTABLE} for macos-aarch64"
         GOOS=darwin GOARCH=arm64 go build -o ${ZIP_TEMP}/${EXECUTABLE}-aarch64
+
         echo "Building ${EXECUTABLE} for macos-x86_64"
         GOOS=darwin GOARCH=amd64 go build -o ${ZIP_TEMP}/${EXECUTABLE}-x86_64
+
         echo "Combinging macos-aarch64 and macos-aarch64 into ${EXECUTABLE}"
         lipo -create -output ${ZIP_TEMP}/${EXECUTABLE} ${ZIP_TEMP}/${EXECUTABLE}-aarch64 ${ZIP_TEMP}/${EXECUTABLE}-x86_64
+        if [[ -r .codesign ]]; then
+            echo "Signing ${EXECUTABLE} for macos"
+            codesign -s "$(cat .codesign)" ${ZIP_TEMP}/${EXECUTABLE}
+        else
+            echo "WARNING: No codesigning authority specified. Executable will not be signed."
+            echo "Set one by entering your identity in the .codesign file"
+            echo "e.g.: Fred Brooks (ABC1A2B3CD)"
+        fi;
         rm -f ${ZIP_TEMP}/${EXECUTABLE}-aarch64 ${ZIP_TEMP}/${EXECUTABLE}-x86_64
+
         EXE=""
         ;;
     

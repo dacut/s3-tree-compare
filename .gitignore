@@ -18,6 +18,10 @@ s3-tree-compare
 # Editor settings
 .vscode/
 
+# Code signing identity
+.codesign
+
+
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
