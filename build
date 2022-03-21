@@ -1,0 +1,56 @@
+#!/bin/bash -e
+EXECUTABLE="s3-tree-compare"
+
+if [[ "$#" -ne 1 ]]; then
+    echo "Usage: build <zip-target>" 1>&2;
+    exit 1;
+fi;
+
+ZIP_TARGET="$1"
+export OS=$(echo $ZIP_TARGET | sed -E -e 's/^'$EXECUTABLE'-([^-]+)-.*/\1/')
+export ARCH=$(echo $ZIP_TARGET | sed -E -e 's/^'$EXECUTABLE'-[^-]+-([^-]+).*/\1/')
+
+ZIP_TEMP=tmp-${OS}-${ARCH}
+rm -rf $ZIP_TEMP
+mkdir -p $ZIP_TEMP
+
+case "$OS" in
+    macos )
+        echo "Building ${EXECUTABLE} for macos-aarch64"
+        GOOS=darwin GOARCH=arm64 go build -o ${ZIP_TEMP}/${EXECUTABLE}-aarch64
+        echo "Building ${EXECUTABLE} for macos-x86_64"
+        GOOS=darwin GOARCH=amd64 go build -o ${ZIP_TEMP}/${EXECUTABLE}-x86_64
+        echo "Combinging macos-aarch64 and macos-aarch64 into ${EXECUTABLE}"
+        lipo -create -output ${ZIP_TEMP}/${EXECUTABLE} ${ZIP_TEMP}/${EXECUTABLE}-aarch64 ${ZIP_TEMP}/${EXECUTABLE}-x86_64
+        rm -f ${ZIP_TEMP}/${EXECUTABLE}-aarch64 ${ZIP_TEMP}/${EXECUTABLE}-x86_64
+        EXE=""
+        ;;
+    
+    windows|linux )
+        GOOS="$OS"
+        case "$ARCH" in
+            aarch64 | arm64 ) GOARCH=arm64;;
+            x86_64 | x86-64 | amd64 ) GOARCH=amd64;;
+            * ) echo "Unknown architecture ${ARCH}" 1>&2;;
+        esac
+
+        if [[ "$OS" = "windows" ]]; then
+            EXE=".exe";
+        else
+            EXE="";
+        fi;
+
+        echo "Building ${EXECUTABLE}${EXE} for ${OS}-${ARCH}"
+        GOOS=$GOOS GOARCH=$GOARCH go build -o $ZIP_TEMP/${EXECUTABLE}${EXE}
+        ;;
+
+    * )
+        echo "Unknown operating system ${OS}" 1>&2;;
+esac
+
+echo "Creating $ZIP_TARGET"
+rm -f ${ZIP_TARGET}
+cd $ZIP_TEMP
+zip -9 ../${ZIP_TARGET} ${EXECUTABLE}${EXE}
+cd ..
+rm -rf ${ZIP_TEMP}
